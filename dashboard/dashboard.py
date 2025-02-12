@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Load dataset
-hour_df = pd.read_csv("hour.csv")
+hour_df = pd.read_csv("../data/hour.csv")
 
 # Mapping untuk deskripsi kondisi cuaca
 weather_mapping = {
