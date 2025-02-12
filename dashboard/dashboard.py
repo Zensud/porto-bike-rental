@@ -6,8 +6,8 @@ import seaborn as sns
 import os
 
 # Load dataset
-script_dir = os.path.dirname(os.path.abspath(__file__))
-csv_path = os.path.join(script_dir, "hour.csv")
+csv_dir = os.path.dirname(os.path.abspath(__file__))
+hour_path = os.path.join(script_dir, "hour.csv")
 hour_df = pd.read_csv(csv_path)
 
 # Mapping untuk deskripsi kondisi cuaca
