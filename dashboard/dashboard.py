@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Load dataset
-day_df = pd.read_csv("day.csv")
 hour_df = pd.read_csv("hour.csv")
 
 # Mapping untuk deskripsi kondisi cuaca
@@ -17,7 +16,6 @@ weather_mapping = {
 }
 
 hour_df['weather_desc'] = hour_df['weathersit'].map(weather_mapping)
-day_df['weather_desc'] = day_df['weathersit'].map(weather_mapping)
 
 # Mapping untuk setiap nama bulan
 month_mapping = {
@@ -28,10 +26,8 @@ month_mapping = {
 month_order = list(month_mapping.values())
 
 hour_df['month'] = pd.Categorical(hour_df['mnth'].map(month_mapping), categories=month_order, ordered=True)
-day_df['month'] = pd.Categorical(day_df['mnth'].map(month_mapping), categories=month_order, ordered=True)
 
 # Mapping untuk tahun
-day_df['yr'] = day_df['yr'].map({0: 2011, 1: 2012})
 hour_df['yr'] = hour_df['yr'].map({0: 2011, 1: 2012})
 
 # Dashboard and filter thing
