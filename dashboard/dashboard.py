@@ -50,17 +50,39 @@ if selected_question == "Pertanyaan 1":
     workingday_data = weather_rentals[(weather_rentals['workingday'] == 1) & (weather_rentals['holiday'] == 0)]
     holiday_data = weather_rentals[(weather_rentals['holiday'] == 1) & (weather_rentals['workingday'] == 0)]
     holiday_data = holiday_data.set_index('weathersit').reindex(workingday_data['weathersit']).reset_index()
-    fig, ax = plt.subplots(figsize=(12, 6))
+
+    st.header("Grouped Bar Chart")
+    fig1, ax1 = plt.subplots(figsize=(12, 6))
     bar_width = 0.35
     index = np.arange(len(workingday_data))
-    plt.bar(index, workingday_data['cnt'], bar_width, label='Hari Kerja')
-    plt.bar(index + bar_width, holiday_data['cnt'], bar_width, label='Hari Libur')
-    plt.xlabel('Kondisi Cuaca')
-    plt.ylabel('Rata-rata Jumlah Penyewaan Sepeda (cnt)')
-    plt.title('Pengaruh Kondisi Cuaca terhadap Penyewaan Sepeda pada Hari Kerja vs Hari Libur')
-    plt.xticks(index + bar_width / 2, workingday_data['weather_desc'])
-    plt.legend()
-    st.pyplot(fig)
+
+    ax1.bar(index, workingday_data['cnt'], bar_width, label='Hari Kerja', color='steelblue')
+    ax1.bar(index + bar_width, holiday_data['cnt'], bar_width, label='Hari Libur', color='darkorange')
+
+    ax1.set_xlabel('Kondisi Cuaca')
+    ax1.set_ylabel('Rata-rata Jumlah Penyewaan Sepeda (cnt)')
+    ax1.set_title('Pengaruh Kondisi Cuaca terhadap Penyewaan Sepeda\n(Hari Kerja vs Hari Libur) - Bar Chart')
+    ax1.set_xticks(index + bar_width / 2)
+    ax1.set_xticklabels(workingday_data['weather_desc'])
+    ax1.legend()
+    fig1.tight_layout()
+
+    st.pyplot(fig1)
+
+    st.header("Line Plot")
+    fig2, ax2 = plt.subplots(figsize=(12, 6))
+    ax2.plot(workingday_data['weathersit'], workingday_data['cnt'], marker='o', linestyle='-', label='Hari Kerja', color='steelblue')
+    ax2.plot(holiday_data['weathersit'], holiday_data['cnt'], marker='o', linestyle='-', label='Hari Libur', color='darkorange')
+
+    ax2.set_xlabel('Kondisi Cuaca (weathersit)')
+    ax2.set_ylabel('Rata-rata Jumlah Penyewaan Sepeda (cnt)')
+    ax2.set_title('Pengaruh Kondisi Cuaca terhadap Penyewaan Sepeda\n(Hari Kerja vs Hari Libur) - Line Plot')
+    ax2.set_xticks(workingday_data['weathersit'])
+    ax2.set_xticklabels(workingday_data['weather_desc'])
+    ax2.legend()
+    fig2.tight_layout()
+
+    st.pyplot(fig2)
 
     st.title("Conclusion")
 
@@ -117,4 +139,3 @@ else:
     - Pada kelembaban yang sangat tinggi atau rendah, jumlah penyewaan cenderung lebih sedikit, yang disebabkan oleh kenyamanan berkendara berkurang.
     - Pola musiman menunjukkan jumlah penyewaan tertinggi pada bulan Mei hingga September.
     """)
-
