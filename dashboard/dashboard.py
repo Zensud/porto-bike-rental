@@ -8,7 +8,7 @@ import os
 # Load dataset
 csv_dir = os.path.dirname(os.path.abspath(__file__))
 hour_path = os.path.join(csv_dir, "hour.csv")
-hour_df = pd.read_csv(csv_path)
+hour_df = pd.read_csv(hour_path)
 
 # Mapping untuk deskripsi kondisi cuaca
 weather_mapping = {
