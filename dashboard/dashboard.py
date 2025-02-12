@@ -59,6 +59,7 @@ if selected_question == "Pertanyaan 1":
     ax1.bar(index, workingday_data['cnt'], bar_width, label='Hari Kerja', color='steelblue')
     ax1.bar(index + bar_width, holiday_data['cnt'], bar_width, label='Hari Libur', color='darkorange')
 
+    #Line Plot
     ax1.set_xlabel('Kondisi Cuaca')
     ax1.set_ylabel('Rata-rata Jumlah Penyewaan Sepeda (cnt)')
     ax1.set_title('Pengaruh Kondisi Cuaca terhadap Penyewaan Sepeda\n(Hari Kerja vs Hari Libur) - Bar Chart')
@@ -66,9 +67,9 @@ if selected_question == "Pertanyaan 1":
     ax1.set_xticklabels(workingday_data['weather_desc'])
     ax1.legend()
     fig1.tight_layout()
-
     st.pyplot(fig1)
 
+    #Line plot
     st.header("Line Plot")
     fig2, ax2 = plt.subplots(figsize=(12, 6))
     ax2.plot(workingday_data['weathersit'], workingday_data['cnt'], marker='o', linestyle='-', label='Hari Kerja', color='steelblue')
@@ -81,7 +82,6 @@ if selected_question == "Pertanyaan 1":
     ax2.set_xticklabels(workingday_data['weather_desc'])
     ax2.legend()
     fig2.tight_layout()
-
     st.pyplot(fig2)
 
     st.title("Conclusion")
