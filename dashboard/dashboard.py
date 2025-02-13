@@ -10,6 +10,9 @@ csv_dir = os.path.dirname(os.path.abspath(__file__))
 hour_path = os.path.join(csv_dir, "hour.csv")
 hour_df = pd.read_csv(hour_path)
 
+# Konversi tanggal
+hour_df['dteday'] = pd.to_datetime(hour_df['dteday'])
+
 # Mapping untuk deskripsi kondisi cuaca
 weather_mapping = {
     1: "Cerah hingga Berawan Sebagian",
@@ -43,30 +46,50 @@ st.markdown("2. Apakah terdapat pola musiman (**seasonal pattern**) dalam jumlah
 st.sidebar.header("Filters Pertanyaan")
 selected_question = st.sidebar.radio("Select Analysis", ["Pertanyaan 1", "Pertanyaan 2"])
 
+
+    
+
 # Pertanyaan 1
 if selected_question == "Pertanyaan 1":
     st.subheader("Dampak Cuaca pada Penyewaan Sepeda")
-    weather_rentals = hour_df.groupby(['weathersit', 'weather_desc', 'workingday', 'holiday'])['cnt'].mean().reset_index()
+    
+    # Filter Date, weather
+    st.sidebar.header("Filter Data")
+    start_date = st.sidebar.date_input("Pilih Tanggal Mulai", hour_df['dteday'].min())
+    end_date = st.sidebar.date_input("Pilih Tanggal Akhir", hour_df['dteday'].max())
+    selected_weather = st.sidebar.multiselect(
+        "Pilih Kondisi Cuaca",
+        options=hour_df['weather_desc'].unique(),
+        default=hour_df['weather_desc'].unique()
+    )
+    
+    filtered_df = hour_df[
+        (hour_df['dteday'] >= pd.Timestamp(start_date)) &
+        (hour_df['dteday'] <= pd.Timestamp(end_date)) &
+        (hour_df['weather_desc'].isin(selected_weather))
+    ]
+    
+    st.markdown(f"Data ditampilkan dari **{start_date}** hingga **{end_date}** dengan kondisi cuaca: **{', '.join(selected_weather)}**")
+    
+    # Analisis berdasarkan filter
+    weather_rentals = filtered_df.groupby(['weathersit', 'weather_desc', 'workingday', 'holiday'])['cnt'].mean().reset_index()
     workingday_data = weather_rentals[(weather_rentals['workingday'] == 1) & (weather_rentals['holiday'] == 0)]
     holiday_data = weather_rentals[(weather_rentals['holiday'] == 1) & (weather_rentals['workingday'] == 0)]
     holiday_data = holiday_data.set_index('weathersit').reindex(workingday_data['weathersit']).reset_index()
 
-    st.header("Grouped Bar Chart")
+
+    #Grouped Bar Chart
     fig1, ax1 = plt.subplots(figsize=(12, 6))
     bar_width = 0.35
     index = np.arange(len(workingday_data))
-
     ax1.bar(index, workingday_data['cnt'], bar_width, label='Hari Kerja', color='steelblue')
     ax1.bar(index + bar_width, holiday_data['cnt'], bar_width, label='Hari Libur', color='darkorange')
-
-    #Line Plot
     ax1.set_xlabel('Kondisi Cuaca')
-    ax1.set_ylabel('Rata-rata Jumlah Penyewaan Sepeda (cnt)')
-    ax1.set_title('Pengaruh Kondisi Cuaca terhadap Penyewaan Sepeda\n(Hari Kerja vs Hari Libur) - Bar Chart')
+    ax1.set_ylabel('Rata-rata Jumlah Penyewaan Sepeda')
+    ax1.set_title('Pengaruh Kondisi Cuaca terhadap Penyewaan Sepeda (Hari Kerja vs Hari Libur)')
     ax1.set_xticks(index + bar_width / 2)
     ax1.set_xticklabels(workingday_data['weather_desc'])
     ax1.legend()
-    fig1.tight_layout()
     st.pyplot(fig1)
 
     #Line plot
@@ -95,20 +118,37 @@ if selected_question == "Pertanyaan 1":
 # Pertanyaan 2
 else:
     st.subheader("Pola Musiman dan Dampak Suhu/Kelembapan")
-    monthly_rentals = hour_df.groupby(['yr', 'month'], observed=False)['cnt'].sum().reset_index()
-    monthly_weather = hour_df.groupby(['yr', 'month'], observed=False)[['temp', 'hum']].mean().reset_index()
+
+    # Filter Date moment!!!
+    st.sidebar.header("Filter Data")
+    start_date = st.sidebar.date_input("Pilih Tanggal Mulai", hour_df['dteday'].min())
+    end_date = st.sidebar.date_input("Pilih Tanggal Akhir", hour_df['dteday'].max())
+    
+    filtered_df = hour_df[
+        (hour_df['dteday'] >= pd.Timestamp(start_date)) &
+        (hour_df['dteday'] <= pd.Timestamp(end_date))
+    ]
+    
+    st.markdown(f"Data ditampilkan dari **{start_date}** hingga **{end_date}**")
+    
+    # Ganti analysis sama dengan filter
+    monthly_rentals = filtered_df.groupby(['yr', 'month'], observed=False)['cnt'].sum().reset_index()
+    monthly_weather = filtered_df.groupby(['yr', 'month'], observed=False)[['temp', 'hum']].mean().reset_index()
     monthly_data = pd.merge(monthly_rentals, monthly_weather, on=['yr', 'month'])
+
     fig, ax = plt.subplots(figsize=(12, 6))
     for year in monthly_data['yr'].unique():
         year_data = monthly_data[monthly_data['yr'] == year]
         plt.plot(year_data['month'], year_data['cnt'], label=f'Tahun {year}')
     
+    # Pola musiman dalam Jumlah Penyewaan Sepeda (2011-2012)
     plt.xlabel('Bulan')
     plt.ylabel('Jumlah Penyewaan Sepeda (cnt)')
     plt.title('Pola musiman dalam Jumlah Penyewaan Sepeda (2011-2012)')
     plt.legend()
     st.pyplot(fig)
     
+    # Hubungan antara Suhu dan Jumlah Penyewaan Sepeda
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.scatterplot(data=monthly_data, x='temp', y='cnt', hue='month', palette='viridis', ax=ax)
     plt.xlabel('Suhu (temp)')
@@ -116,6 +156,7 @@ else:
     plt.title('Hubungan antara Suhu dan Jumlah Penyewaan Sepeda')
     st.pyplot(fig)
 
+    # Hubungan antara Kelembaban dan Jumlah Penyewaan Sepeda
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.scatterplot(data=monthly_data, x='hum', y='cnt', hue='month', palette='viridis', ax=ax)
     plt.xlabel('Kelembaban (hum)')
@@ -123,6 +164,7 @@ else:
     plt.title('Hubungan antara Kelembaban dan Jumlah Penyewaan Sepeda')
     st.pyplot(fig)
 
+    # Heatmap Jumlah Penyewaan Sepeda per Bulan (2011-2012)
     heatmap_data = monthly_data.pivot(index='month', columns='yr', values='cnt')
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.heatmap(heatmap_data, annot=True, fmt=".0f", cmap='YlGnBu', ax=ax)
